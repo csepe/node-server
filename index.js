@@ -18,7 +18,7 @@ const deps = {
         let multer = require("multer")
         let storage = multer.diskStorage({
             destination: (req, res, cb) => {
-                cb(null, path.join(__dirname, "uploads"));
+                cb(null, path.join(__dirname, "uploads"))
             },
             filename: (req, res, cb) => {
                 cb(null, res.originalname);
@@ -29,40 +29,42 @@ const deps = {
     axios: require("axios").create((new require("https-proxy-agent"))('http://cseszneki.peter:870717Piller7@fwsg.pillerkft.hu:8080'))
 }
 
-deps.app.use(deps.express.static("public"));
-deps.app.use(deps.express.static("uploads"));
-deps.app.use(deps.express.static("angular-app"));
-deps.app.use(deps.express.static("angular-app/assets"));
-deps.app.use(deps.cors());
-//app.use(express.json());
+deps.app.use(deps.express.static("public"))
+deps.app.use(deps.express.static("uploads"))
+deps.app.use(deps.express.static("angular-app"))
+deps.app.use(deps.express.static("angular-app/assets"))
+deps.app.use(deps.cors())
+//app.use(express.json())
 deps.app.use(deps.jsonStream())
 
-deps.requireDir('./apis', { extensions: ['.js'], mapValue(fn) { return fn(deps) } })
+deps.requireDir(deps.path.resolve(__dirname, 'apis'), { extensions: ['.js'], mapValue(fn) { return fn(deps) } })
 
-deps.app.get("/", function (req, res) {
+deps.app.get("/", (req, res) => {
     let htmlOutput = `<h2>Routes</h2><ul>`;
     deps.app._router.stack.forEach(route => {
         if (route.route && route.route.path) {
             htmlOutput =
                 htmlOutput +
-                `<li><a href="${route.route.path}">${route.route.path}</a></li>`;
+                `<li><a href="${route.route.path}">${route.route.path}</a></li>`
         }
-    });
-    htmlOutput = htmlOutput.toString();
-    res.set("Content-Type", "text/html");
-    res.send(new Buffer.from(htmlOutput));
-});
+    })
+    htmlOutput = htmlOutput.toString()
+    res.set("Content-Type", "text/html")
+    res.send(new Buffer.from(htmlOutput))
+})
 
-deps.app.route("/*").get(function (req, res) {
-    //res.sendFile("angular-app/index.html", { root: __dirname });
-});
+deps.app.route("/*").get((req, res) => {
+    //res.sendFile("angular-app/index.html", { root: __dirname })
+})
 
 const listener = deps.app.listen(4201, () => {
-    console.log("Your app is listening on port " + listener.address().port);
-    var url = 'http://localhost:' + listener.address().port;
-    //var start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
-    //require('child_process').exec(start + ' ' + url);
-});
+    let url = 'http://localhost:' + listener.address().port
+    console.log("Your app is listening on", url)
+    if (openPage) {
+        let start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open')
+        require('child_process').exec(start + ' ' + url)
+    }
+})
 
 if (process.env.PROJECT_DOMAIN) {
     setInterval(() => {
@@ -70,13 +72,13 @@ if (process.env.PROJECT_DOMAIN) {
             .get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`)
             .then(response => { })
             .catch(err => {
-                console.log(err);
-            });
-    }, 280000);
+                console.log(err)
+            })
+    }, 280000)
 }
 
 function simpleStringify(object) {
-    var simpleObject = {};
+    let simpleObject = {}
     for (var prop in object) {
         if (!object.hasOwnProperty(prop)) {
             continue;
@@ -87,7 +89,7 @@ function simpleStringify(object) {
         if (typeof object[prop] == "function") {
             continue;
         }
-        simpleObject[prop] = object[prop];
+        simpleObject[prop] = object[prop]
     }
-    return JSON.stringify(simpleObject);
+    return JSON.stringify(simpleObject)
 }

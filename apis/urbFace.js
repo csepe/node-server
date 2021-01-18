@@ -1,7 +1,6 @@
 module.exports = app => {
     with (app) {
 
-
         app.get("/api/urbface", (req, res) => {
             let url = "data/urbface.json",
                 obj;

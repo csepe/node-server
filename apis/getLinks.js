@@ -18,7 +18,7 @@ module.exports = app => {
                 return arr
             }
             getData(url).then(value => {
-
+                console.log(value)
             },
                 error => console.log(error)
             )
@@ -53,7 +53,6 @@ module.exports = app => {
                     }
                     cacheService.cacheAndServeFile(options)
                 })
-                console.log(promise)
 
                 let parseData = (data, options) => {
                     let root = parse(data),
@@ -104,16 +103,8 @@ module.exports = app => {
                     res.json(json)
                     res.end()
                 }
-
-
                 return promise
-
-
-
-
             }
-
         });
-
     }
 }
