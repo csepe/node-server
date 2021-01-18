@@ -1,15 +1,93 @@
-const express = require('express');
+const deps = {
+    express: require("express"),
+    app: require("express")(),
+    jsonStream: require('express-jsonstream'),
+    parse: require("node-html-parser"),
+    kmlToJson: require("./kmlToJson"),
+    cacheService: new (require("./CacheService"))(),
+    fs: require("fs"),
+    cors: require("cors"),
+    iconv: require("iconv-lite"),
+    multer: require("multer"),
+    path: require("path"),
+    extract: require("extract-zip"),
+    HttpsProxyAgent: require("https-proxy-agent"),
+    basename: require('basename'),
+    requireDir: require('require-dir'),
+    upload: () => {
+        let multer = require("multer")
+        let storage = multer.diskStorage({
+            destination: (req, res, cb) => {
+                cb(null, path.join(__dirname, "uploads"));
+            },
+            filename: (req, res, cb) => {
+                cb(null, res.originalname);
+            }
+        })
+        return multer({ storage: storage }).single("data")
+    },
+    axios: require("axios").create((new require("https-proxy-agent"))('http://cseszneki.peter:870717Piller7@fwsg.pillerkft.hu:8080'))
+}
 
-const app = express();
+deps.app.use(deps.express.static("public"));
+deps.app.use(deps.express.static("uploads"));
+deps.app.use(deps.express.static("angular-app"));
+deps.app.use(deps.express.static("angular-app/assets"));
+deps.app.use(deps.cors());
+//app.use(express.json());
+deps.app.use(deps.jsonStream())
 
-app.get('/', (req, res) => res.send('Home Page Route'));
+deps.requireDir('./apis', { extensions: ['.js'], mapValue(fn) { return fn(deps) } })
 
-app.get('/about', (req, res) => res.send('About Page Route'));
+deps.app.get("/", function (req, res) {
+    let htmlOutput = `<h2>Routes</h2><ul>`;
+    deps.app._router.stack.forEach(route => {
+        if (route.route && route.route.path) {
+            htmlOutput =
+                htmlOutput +
+                `<li><a href="${route.route.path}">${route.route.path}</a></li>`;
+        }
+    });
+    htmlOutput = htmlOutput.toString();
+    res.set("Content-Type", "text/html");
+    res.send(new Buffer.from(htmlOutput));
+});
 
-app.get('/portfolio', (req, res) => res.send('Portfolio Page Route'));
+deps.app.route("/*").get(function (req, res) {
+    //res.sendFile("angular-app/index.html", { root: __dirname });
+});
 
-app.get('/contact', (req, res) => res.send('Contact Page Route'));
+const listener = deps.app.listen(4201, () => {
+    console.log("Your app is listening on port " + listener.address().port);
+    var url = 'http://localhost:' + listener.address().port;
+    //var start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
+    //require('child_process').exec(start + ' ' + url);
+});
 
-const port = process.env.PORT || 3000;
+if (process.env.PROJECT_DOMAIN) {
+    setInterval(() => {
+        axios
+            .get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`)
+            .then(response => { })
+            .catch(err => {
+                console.log(err);
+            });
+    }, 280000);
+}
 
-app.listen(port, () => console.log(`Server running on ${port}, http://localhost:${port}`));
+function simpleStringify(object) {
+    var simpleObject = {};
+    for (var prop in object) {
+        if (!object.hasOwnProperty(prop)) {
+            continue;
+        }
+        if (typeof object[prop] == "object") {
+            continue;
+        }
+        if (typeof object[prop] == "function") {
+            continue;
+        }
+        simpleObject[prop] = object[prop];
+    }
+    return JSON.stringify(simpleObject);
+}
