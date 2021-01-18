@@ -37,7 +37,8 @@ deps.app.use(deps.cors())
 //app.use(express.json())
 deps.app.use(deps.jsonStream())
 
-deps.requireDir(deps.path.resolve(__dirname, 'apis'), { extensions: ['.js'], mapValue(fn) { return fn(deps) } })
+//deps.path.resolve(__dirname, 'apis')
+deps.requireDir('apis', { extensions: ['.js'], mapValue(fn) { return fn(deps) } })
 
 deps.app.get("/", (req, res) => {
     let htmlOutput = `<h2>Routes</h2><ul>`;
@@ -58,6 +59,7 @@ deps.app.route("/*").get((req, res) => {
 })
 
 const listener = deps.app.listen(4201, () => {
+    let openPage = false
     let url = 'http://localhost:' + listener.address().port
     console.log("Your app is listening on", url)
     if (openPage) {
