@@ -1,7 +1,7 @@
 const DOMParser = require("xmldom").DOMParser;
 
 // Get KML file
-let kmlToJson = (kml, mapId) => {
+const kmlToJson = (kml, mapId) => {
   let getNodeValue = (node, item) => {
     let el = node.getElementsByTagName(item)[0];
     return el && el.childNodes[0] ? el.childNodes[0].nodeValue.trim() : "";

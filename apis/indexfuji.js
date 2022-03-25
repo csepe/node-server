@@ -18,7 +18,7 @@ module.exports = app => {
             let parseData = data =>
                 new Promise(resolve => {
                     data.pipe(iconv.decodeStream("win1250")).collect(function (err, html) {
-                        let root = parse.parse(html),
+                        let root = HTMLParser.parse(html),
                             elems = root.querySelectorAll(".art"),
                             json = [];
 

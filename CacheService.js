@@ -1,26 +1,59 @@
-const fs = require("fs"),
-  mkdirp = require("mkdirp"),
-  getDirName = require("path").dirname,
-  HttpsProxyAgent = require("https-proxy-agent")
-  //axios = require("axios")
+const fs = require('fs'),
+  mkdirp = require('mkdirp'),
+  getDirName = require('path').dirname,
+  HttpsProxyAgent = require('https-proxy-agent'),
+  http = require('http'),
+  https = require('https')
+//axios = require('axios')
 
-const httpsAgent = new HttpsProxyAgent('http://cseszneki.peter:870717Piller7@fwsg.pillerkft.hu:8080')
-const axios = require("axios").create({ httpsAgent });
+const proxy = 'http://cseszneki.peter:870717Piller2@fwsg.pillerkft.hu:8080'
+const axios = require('axios').create(HttpsProxyAgent(proxy));
 
 class CacheService {
-  constructor(options) {
+  constructor() {
     this.cacheTime = 3600000;
-    if (options) this.options = options;
-    if (options) this.cacheTime = options.cacheTime;
   }
 
-  cacheAndServeFile(options) {
-    if (options) this.options = options;
-    if (options) this.cacheTime = options.cacheTime;
-    if (options.caching) {
-      this.cache();
+  cacheAndServeFile(options, req, res) {
+    this.options = options;
+    if (options.cacheTime) this.cacheTime = options.cacheTime;
+    this.res = res;
+    this.req = req;
+    options.caching ? this.cache() : this.getData()
+  }
+
+  getData() {
+    if (this.options.type == 'file') {
+      fs.readFile(this.options.url, 'utf8', (err, data) => {
+        if (err) {
+          console.trace(err);
+        } else {
+          this.processResponse(data)
+        }
+      });
+    } else if (this.options.type == 'externalApi') {
+      console.log(this.req.query[this.options.urlKey])
+      this.options.middleCallback(this.req.query[this.options.urlKey]).then(d => {
+        this.res.json(d);
+      })
     } else {
-      this.getData();
+      let url = this.options.urlKey ? this.options.url.replace(this.options.urlKey, this.req.query[this.options.urlKey]) : this.options.url
+      axios({
+        url: url,
+        method: this.options.method ?? 'get',
+        headers: this.options.headers ?? {},
+        responseType: this.options.responseType ?? 'json',
+        data: this.options.postData
+      })
+        .then(response => {
+          this.processResponse(response)
+        })
+        .catch(err => {
+          console.log(err.response.config.url)
+          console.trace(err.response.status, err.response.statusText)
+          this.res.end()
+          //this.options.callback({ error: err });
+        });
     }
   }
 
@@ -37,46 +70,33 @@ class CacheService {
   writeFile(data) {
     // __dirname + "/" + file
     //path.join(__dirname, this.options.file)
-    let path = this.options.file; 
+    let path = this.options.file;
     fs.writeFile(path, JSON.stringify(data), "utf8", err => {
       this.options.callback({ ok: "ok" });
     });
   }
 
-  getData() {
-    axios({
-      method: this.options.method ? this.options.method : "GET",
-      url: this.options.url,
-      headers: this.options.headers ? this.options.headers : {},
-      responseType: this.options.responseType
-        ? this.options.responseType
-        : "json",
-      data: this.options.postData
-    })
-      .then(response => {
-        let data;
-        if (
-          this.options.middleCallback &&
-          this.options.middleCallback(response.data) != null &&
-          typeof this.options.middleCallback(response.data).then === "function"
-        ) {
-          this.options.middleCallback(response.data).then(d => {
-            data = d;
-            if (this.options.caching) this.writeFile(data);
-            this.options.callback(data);
-          });
-        } else {
-          data = this.options.middleCallback
-            ? this.options.middleCallback(response.data)
-            : response.data;
-          if (this.options.caching) this.writeFile(data);
-          this.options.callback(data);
-        }
-      })
-      .catch(err => {
-        console.trace(err);
-        this.options.callback({ error: err });
+  processResponse(response) {
+    let responseData = response.data ?? response, data = null
+    if (
+      this.options.middleCallback &&
+      this.options.middleCallback(responseData) != null &&
+      typeof this.options.middleCallback(responseData).then === 'function'
+    ) {
+      this.options.middleCallback(responseData).then(d => {
+        data = d;
+        if (this.options.caching) this.writeFile(data);
+        //this.options.callback(data);
+        this.res.json(data);
       });
+    } else {
+      data = this.options.middleCallback
+        ? this.options.middleCallback(responseData)
+        : responseData;
+      if (this.options.caching) this.writeFile(data);
+      //this.options.callback(data);
+      this.res.json(data);
+    }
   }
 
   cache() {
@@ -154,7 +174,7 @@ function cacheAndServeFile(options, middleCallback, callback) {
         }
       })
       .catch(err => {
-        callback({ error: err });
+        //callback({ error: err });
       });
   };
 

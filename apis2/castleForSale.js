@@ -12,6 +12,7 @@ module.exports = {
 }
 
 let parseData = data => {
+    let url = "http://www.castleforsale.hu/"
     let root = HTMLParser.parse(data),
         elems = root.querySelectorAll(".blokk"),
         json = []
@@ -23,14 +24,14 @@ let parseData = data => {
                 .text.replace("»»", "")
                 .trim(),
             img:
-                options.url +
+                url +
                 elem
                     .querySelector("img")
                     .getAttribute("src")
                     .trim(),
             desc: elem.querySelector("p").text.trim(),
             url:
-                options.url +
+               url +
                 elem
                     .querySelector("a")
                     .getAttribute("href")
