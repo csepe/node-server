@@ -40,9 +40,9 @@ class CacheService {
       let url = this.options.urlKey ? this.options.url.replace(this.options.urlKey, this.req.query[this.options.urlKey]) : this.options.url
       axios({
         url: url,
-        method: this.options.method ?? 'get',
-        headers: this.options.headers ?? {},
-        responseType: this.options.responseType ?? 'json',
+        method: this.options.method ? this.options.method : 'get',
+        headers: this.options.headers ? this.options.headers : {},
+        responseType: this.options.responseType ? this.options.responseType : 'json',
         data: this.options.postData
       })
         .then(response => {
@@ -77,7 +77,8 @@ class CacheService {
   }
 
   processResponse(response) {
-    let responseData = response.data ?? response, data = null
+    let responseData = response.data ? response.data : response;
+    let data = null;
     if (
       this.options.middleCallback &&
       this.options.middleCallback(responseData) != null &&
