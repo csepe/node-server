@@ -49,8 +49,8 @@ class CacheService {
           this.processResponse(response)
         })
         .catch(err => {
-          console.log(err.response.config.url)
-          console.trace(err.response.status, err.response.statusText)
+          if(err.response.config) console.log(err.response.config.url)
+          if(err.response) console.trace(err.response.status, err.response.statusText)
           this.res.end()
           //this.options.callback({ error: err });
         });
