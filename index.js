@@ -2,6 +2,7 @@ const express = require("express");
 const app = require("express")();
 const cacheService = new (require("./CacheService"))();
 const cors = require("cors");
+const path = require('path');
 const requireDir = require('require-dir');
 
 app.use(
@@ -13,7 +14,7 @@ app.use(
     express.json()
 )
 
-const apis = requireDir('./apis2', { extensions: ['.js'] });
+const apis = requireDir(path.resolve(__dirname, 'apis2'), { extensions: ['.js'] });
 const PORT = 4201;
 
 app.get("/", (req, res) => {
