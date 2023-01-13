@@ -1,11 +1,6 @@
-const fs = require('fs'),
-  mkdirp = require('mkdirp'),
-  getDirName = require('path').dirname,
-  HttpsProxyAgent = require('https-proxy-agent'),
-  http = require('http'),
-  https = require('https')
-//axios = require('axios')
-
+const fs = require('fs');
+const HttpsProxyAgent = require('https-proxy-agent');
+const path = require('path');
 const proxy = 'http://cseszneki.peter:870717Piller2@fwsg.pillerkft.hu:8080'
 const axios = require('axios').create(HttpsProxyAgent(proxy));
 
@@ -24,7 +19,7 @@ class CacheService {
 
   getData() {
     if (this.options.type == 'file') {
-      fs.readFile(this.options.url, 'utf8', (err, data) => {
+      fs.readFile(path.resolve(__dirname, this.options.url), 'utf8', (err, data) => {
         if (err) {
           console.trace(err);
         } else {
@@ -32,7 +27,6 @@ class CacheService {
         }
       });
     } else if (this.options.type == 'externalApi') {
-      console.log(this.req.query[this.options.urlKey])
       this.options.middleCallback(this.req.query[this.options.urlKey]).then(d => {
         this.res.json(d);
       })
@@ -49,8 +43,11 @@ class CacheService {
           this.processResponse(response)
         })
         .catch(err => {
-          if(err.response.config) console.log(err.response.config.url)
-          if(err.response) console.trace(err.response.status, err.response.statusText)
+          if (err.response.config) { 
+            console.log(err.response.config.url)
+            console.log(err.response.config.headers)
+          }
+          if (err.response) console.trace(err.response.status, err.response.statusText)
           this.res.end()
           //this.options.callback({ error: err });
         });
