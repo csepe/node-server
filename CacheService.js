@@ -1,7 +1,7 @@
 const fs = require('fs');
 const HttpsProxyAgent = require('https-proxy-agent');
 const path = require('path');
-const proxy = 'http://cseszneki.peter:870717Piller2@fwsg.pillerkft.hu:8080'
+const proxy = 'http://cseszneki.peter:870717Piller5@fwsg.pillerkft.hu:8080'
 const axios = require('axios').create(HttpsProxyAgent(proxy));
 
 class CacheService {
